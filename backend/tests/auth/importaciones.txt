@@ -1,0 +1,24 @@
+//importaciones de las pruebas
+
+// 01. Prueba de creación de usuarios
+import { Users } from './models/index.js';
+
+// 02. Prueba de consulta a BD
+import * as authQueries from './queries/authQueries.js';
+import * as userQueries from './queries/userQueries.js';
+
+//03. Revisión del workflow
+import { registerUserDao } from './repository/DAO/authDao.js';
+import { userResponseDto } from './repository/DTO/userDto.js';
+import { authResponses } from './governance/authGovernance.js';
+
+//Uso de las funciones de pruebas
+
+// 01 creación de usuarios
+testDB();
+
+// 02 revisión de usuarios creados
+testIntegratedQueries();
+
+// 03 Revisión de workflow
+testFinalFlow();

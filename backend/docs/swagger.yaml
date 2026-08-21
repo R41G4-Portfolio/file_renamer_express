@@ -1,0 +1,1069 @@
+openapi: 3.0.0
+info:
+  title: File Renamer Command API
+  version: 1.0.0
+  description: API con autenticación de sesión única y sistema de auditoría bajo estándares de seguridad.
+  contact:
+    name: Soporte
+    email: soporte@ejemplo.com
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Servidor de desarrollo
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+      description: Cookie de sesión JWT (HttpOnly, establecida en login/register)
+
+  schemas:
+    # ---------- Esquemas de respuesta comunes ----------
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 150
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 10
+        totalPages:
+          type: integer
+          example: 15
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        data:
+          type: object
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        code:
+          type: string
+          example: "TEMPLATE_NOT_FOUND"
+        message:
+          type: string
+        details:
+          type: string
+          nullable: true
+
+    # ---------- Usuario (basado en userResponseDTO y authResponses.registerSuccess) ----------
+    UserPublic:
+      type: object
+      properties:
+        sid:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [ADMIN, UPLOADER, DOWNLOADER]
+        createdAt:
+          type: string
+          format: date-time
+
+    UserLoginResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserPublic'
+        expiresAt:
+          type: string
+          format: date-time
+          description: Fecha de expiración del token
+
+    # ---------- Template (basado en templateResponses y DTO) ----------
+    TemplateSummary:
+      type: object
+      properties:
+        sid:
+          type: string
+          format: uuid
+        title:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, COMPLETED, CANCELLED]
+        uploadedBy:
+          type: string
+          format: uuid
+        assignedTo:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TemplateDetail:
+      allOf:
+        - $ref: '#/components/schemas/TemplateSummary'
+        - type: object
+          properties:
+            cancellationReason:
+              type: string
+              nullable: true
+            excelFileName:
+              type: string
+            rowCount:
+              type: integer
+            renamingRules:
+              type: array
+              items:
+                type: object
+                properties:
+                  rowIndex:
+                    type: integer
+                  folderPath:
+                    type: string
+                  desiredName:
+                    type: string
+
+    TemplateUploadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            sid:
+              type: string
+              format: uuid
+            rowCount:
+              type: integer
+
+    # ---------- Assignment (basado en assignmentResponses y models) ----------
+    AssignmentSummary:
+      type: object
+      properties:
+        sid:
+          type: string
+          format: uuid
+        templateSid:
+          type: string
+          format: uuid
+        rowIndex:
+          type: integer
+        status:
+          type: string
+          enum: [PENDING, UPLOADED, FAILED, APPROVED, REJECTED]
+        originalName:
+          type: string
+          nullable: true
+        sha256:
+          type: string
+          nullable: true
+        comments:
+          type: string
+          nullable: true
+        uploadedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    AssignmentUploadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            sid:
+              type: string
+            templateSid:
+              type: string
+            rowIndex:
+              type: integer
+            status:
+              type: string
+            originalName:
+              type: string
+            sha256:
+              type: string
+
+    AssignmentReviewResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            sid:
+              type: string
+            templateSid:
+              type: string
+            rowIndex:
+              type: integer
+            status:
+              type: string
+
+    # ---------- Audit ----------
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        action:
+          type: string
+        targetId:
+          type: string
+          nullable: true
+        ipAddress:
+          type: string
+          nullable: true
+        userAgent:
+          type: string
+          nullable: true
+        details:
+          type: object
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+
+    # ---------- ZIP ----------
+    ZipGenerateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            zipChecksum:
+              type: string
+            fileCount:
+              type: integer
+            generatedAt:
+              type: string
+              format: date-time
+
+  security:
+    - cookieAuth: []
+
+# ==================== PATHS ====================
+paths:
+  # -------------------- AUTH --------------------
+  /auth/register:
+    post:
+      summary: Registrar un nuevo usuario
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                role:
+                  type: string
+                  enum: [ADMIN, UPLOADER, DOWNLOADER]
+                  default: DOWNLOADER
+      responses:
+        201:
+          description: Usuario creado exitosamente (cookie establecida)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/UserPublic'
+        400:
+          description: Error de validación
+        403:
+          description: Ya hay una sesión activa
+        409:
+          description: El correo ya está en uso
+
+  /auth/login:
+    post:
+      summary: Iniciar sesión
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Login exitoso (se establecen cookies token y user_context)
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: "token=eyJ...; HttpOnly; Secure; SameSite=Strict"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLoginResponse'
+        401:
+          description: Credenciales inválidas
+        403:
+          description: Ya existe una sesión activa
+
+  /auth/logout:
+    post:
+      summary: Cerrar sesión
+      tags: [Auth]
+      security:
+        - cookieAuth: []
+      responses:
+        200:
+          description: Sesión cerrada (cookies eliminadas)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        401:
+          description: No hay sesión activa
+
+  # -------------------- ADMIN --------------------
+  /admin/templates:
+    get:
+      summary: Obtener todas las plantillas (solo ADMIN) con paginación
+      tags: [Admin]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        200:
+          description: Lista paginada de templates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TemplateSummary'
+        500:
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+
+  # -------------------- ASSIGNMENTS --------------------
+  /assignments/template/{templateSid}:
+    post:
+      summary: Desglosar plantilla y crear asignaciones (una por fila)
+      tags: [Assignments]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: templateSid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        201:
+          description: Asignaciones creadas exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      templateSid:
+                        type: string
+                      totalTasksInserted:
+                        type: integer
+        404:
+          description: Plantilla no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  success: false
+                  code: TEMPLATE_NOT_FOUND
+                  message: La plantilla especificada no existe, imposible generar sus asignaciones.
+        409:
+          description: Ya asignada previamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          description: Error interno
+
+  /assignments/upload:
+    post:
+      summary: Subir documento para una asignación (DOWNLOADER asignado)
+      tags: [Assignments]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [assignmentSid, file]
+              properties:
+                assignmentSid:
+                  type: string
+                  format: uuid
+                file:
+                  type: string
+                  format: binary
+                comments:
+                  type: string
+      responses:
+        200:
+          description: Documento subido exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentUploadResponse'
+        400:
+          description: Falta archivo o campos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: No eres el DOWNLOADER asignado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Asignación no encontrada
+        500:
+          description: Error interno
+
+  /assignments/review:
+    patch:
+      summary: Aprobar o rechazar un documento subido (ADMIN o UPLOADER)
+      tags: [Assignments]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assignmentSid, approved]
+              properties:
+                assignmentSid:
+                  type: string
+                  format: uuid
+                approved:
+                  type: boolean
+                rejectionReason:
+                  type: string
+      responses:
+        200:
+          description: Revisión registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentReviewResponse'
+        400:
+          description: Estado inválido o acción incorrecta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: No autorizado
+        404:
+          description: Asignación no encontrada
+
+  # -------------------- AUDIT --------------------
+  /audit:
+    get:
+      summary: Obtener logs de auditoría (solo ADMIN) con paginación y filtros
+      tags: [Audit]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: userId
+          in: query
+          schema:
+            type: string
+      responses:
+        200:
+          description: Lista paginada de auditoría
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditLog'
+        500:
+          description: Error interno
+
+  # -------------------- DASHBOARD --------------------
+  /dashboard/templates:
+    get:
+      summary: Obtener plantillas para el dashboard (ADMIN todas, UPLOADER las suyas)
+      tags: [Dashboard]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Lista paginada de plantillas (resumen)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TemplateSummary'
+        500:
+          description: Error interno
+
+  # -------------------- TASKS --------------------
+  /tasks/assignments:
+    get:
+      summary: Obtener asignaciones del usuario autenticado (DOWNLOADER sus tareas, ADMIN todas)
+      tags: [Tasks]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, UPLOADED, FAILED, APPROVED, REJECTED]
+      responses:
+        200:
+          description: Lista de asignaciones (sin paginación, directamente el array)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssignmentSummary'
+        500:
+          description: Error interno
+
+  /tasks/files/{assignmentSid}:
+    get:
+      summary: Ver/descargar el archivo subido en una asignación
+      tags: [Tasks]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: assignmentSid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Archivo PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        403:
+          description: No autorizado
+        404:
+          description: Asignación o archivo no encontrado
+
+  # -------------------- TEMPLATES --------------------
+  /templates/download-template:
+    get:
+      summary: Descargar plantilla Excel vacía (archivo fijo)
+      tags: [Templates]
+      security:
+        - cookieAuth: []
+      responses:
+        200:
+          description: Archivo Excel base
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+
+  /templates/download-excel/{sid}:
+    get:
+      summary: Descargar el Excel original de una plantilla
+      tags: [Templates]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Archivo Excel original
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        403:
+          description: No autorizado
+        404:
+          description: Plantilla no encontrada
+
+  /templates:
+    get:
+      summary: Listar plantillas (ADMIN todas, UPLOADER las suyas) con paginación
+      tags: [Templates]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Lista paginada de plantillas (resumen)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TemplateSummary'
+        403:
+          description: No autorizado
+
+  /templates/upload:
+    post:
+      summary: Subir nueva plantilla (Excel)
+      tags: [Templates]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Plantilla creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateUploadResponse'
+        400:
+          description: Archivo faltante
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        422:
+          description: Estructura inválida del Excel - se devuelve un archivo Excel con errores
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+            Content-Disposition:
+              schema:
+                type: string
+                example: attachment; filename=errores_validacion.xlsx
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        403:
+          description: No autorizado
+
+  /templates/{sid}:
+    get:
+      summary: Obtener detalle completo de una plantilla (incluye renamingRules)
+      tags: [Templates]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Detalle de la plantilla
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/TemplateDetail'
+        403:
+          description: No autorizado
+        404:
+          description: Plantilla no encontrada
+
+    patch:
+      summary: Cancelar lógicamente una plantilla (requiere motivo)
+      tags: [Templates]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cancellationReason]
+              properties:
+                cancellationReason:
+                  type: string
+      responses:
+        200:
+          description: Plantilla cancelada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        400:
+          description: Motivo requerido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: No autorizado
+        404:
+          description: Plantilla no encontrada
+
+  /templates/{sid}/approve:
+    patch:
+      summary: Aprobar plantilla (cambia estado a COMPLETED)
+      tags: [Templates]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Plantilla aprobada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        403:
+          description: No autorizado
+        404:
+          description: Plantilla no encontrada
+
+  /templates/{sid}/assign:
+    put:
+      summary: Asignar plantilla a un DOWNLOADER
+      tags: [Templates]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assigneeSid]
+              properties:
+                assigneeSid:
+                  type: string
+                  format: uuid
+      responses:
+        200:
+          description: Asignación realizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        400:
+          description: Usuario no es DOWNLOADER o ya asignada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: No autorizado
+        404:
+          description: Plantilla o usuario no encontrado
+
+  # -------------------- USERS --------------------
+  /users/role/{role}:
+    get:
+      summary: Obtener usuarios por rol (para asignar en UI)
+      tags: [Users]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: role
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [ADMIN, UPLOADER, DOWNLOADER]
+      responses:
+        200:
+          description: Lista de usuarios (directamente el array)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserPublic'
+        403:
+          description: No autorizado
+        500:
+          description: Error interno
+
+  # -------------------- ZIP --------------------
+  /zip/generate/{templateSid}:
+    post:
+      summary: Generar ZIP con todos los documentos aprobados de la plantilla
+      tags: [ZIP]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: templateSid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: ZIP generado o recuperado de caché
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ZipGenerateResponse'
+        400:
+          description: Faltan documentos por aprobar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: No autorizado
+        404:
+          description: Plantilla no encontrada
+        423:
+          description: Ya hay un proceso de compresión en curso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /zip/download/{templateSid}:
+    get:
+      summary: Descargar el ZIP generado para una plantilla
+      tags: [ZIP]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: templateSid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Archivo ZIP
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        403:
+          description: No autorizado
+        404:
+          description: ZIP no encontrado (primero debe generarse)

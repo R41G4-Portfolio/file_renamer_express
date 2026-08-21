@@ -1,0 +1,8 @@
+.cursor-pointer {
+	cursor: pointer;
+}
+
+tr.template-header-row {
+  --bs-table-bg: #adb5bd !important;
+  --bs-table-bg-type: #adb5bd !important;
+}

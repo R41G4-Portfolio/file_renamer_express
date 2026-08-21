@@ -1,0 +1,196 @@
+/* AdminPage */
+.admin-page {
+	min-height: 100vh;
+	background-color: var(--color-light);
+}
+.admin-page__main {
+	max-width: 1400px;
+	margin: 0 auto;
+	padding: var(--spacing-3xl) var(--spacing-xl);
+}
+.admin-page__main h2,
+.admin-page__main h3 {
+	margin-bottom: var(--spacing-xl);
+	color: var(--color-primary);
+}
+.admin-page__main h2 {
+	font-size: var(--font-size-3xl);
+}
+.admin-page__main h3 {
+	font-size: var(--font-size-2xl);
+}
+
+/* AdminStats */
+.admin-stats-table {
+	width: 100%;
+	background: var(--color-white);
+	border-radius: var(--border-radius-xl);
+	border-collapse: collapse;
+	overflow: hidden;
+	box-shadow: var(--shadow-md);
+	margin-bottom: var(--spacing-3xl);
+}
+.admin-stats-table th,
+.admin-stats-table td {
+	padding: var(--spacing-md);
+	text-align: center;
+	border-bottom: 1px solid #eee;
+}
+.admin-stats-table th {
+	background-color: var(--color-primary);
+	color: var(--color-white);
+	font-weight: 600;
+}
+.admin-stats-table td {
+	font-size: var(--font-size-3xl);
+	font-weight: 600;
+	color: var(--color-primary);
+}
+.stat-active {
+	color: var(--color-secondary) !important;
+}
+.stat-completed {
+	color: var(--color-success) !important;
+}
+.stat-cancelled {
+	color: var(--color-danger) !important;
+}
+
+/* AdminTable */
+.loading {
+	text-align: center;
+	padding: var(--spacing-4xl);
+	color: var(--color-gray);
+}
+.no-action {
+	color: var(--color-gray);
+	font-size: var(--font-size-md);
+}
+
+/* AdminAuditTable */
+.audit-container {
+	background: var(--color-white);
+	border-radius: var(--border-radius-xl);
+	padding: var(--spacing-xl);
+	margin-top: var(--spacing-3xl);
+	overflow-x: auto;
+	box-shadow: var(--shadow-md);
+}
+.audit-container h3 {
+	margin-bottom: var(--spacing-xl);
+	color: var(--color-primary);
+	font-size: var(--font-size-xl);
+}
+.audit-stats {
+	display: flex;
+	gap: var(--spacing-xl);
+	margin-bottom: var(--spacing-xl);
+	flex-wrap: wrap;
+}
+.audit-stat {
+	background: #f8f9fa;
+	padding: var(--spacing-sm) var(--spacing-lg);
+	border-radius: var(--border-radius-md);
+}
+.audit-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--spacing-sm);
+	margin-bottom: var(--spacing-xl);
+	padding: var(--spacing-md);
+	background-color: #f8f9fa;
+	border-radius: var(--border-radius-lg);
+	align-items: center;
+}
+.audit-filters select,
+.audit-filters input {
+	padding: var(--spacing-sm) var(--spacing-md);
+	border: 1px solid #ddd;
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-md);
+	background-color: var(--color-white);
+}
+.filter-label {
+	font-size: var(--font-size-md);
+	color: var(--color-primary);
+	margin-right: var(--spacing-xs);
+}
+.filter-apply-btn,
+.filter-reset-btn {
+	padding: var(--spacing-sm) var(--spacing-lg);
+	border: none;
+	border-radius: var(--border-radius-md);
+	cursor: pointer;
+	font-size: var(--font-size-md);
+}
+.filter-apply-btn {
+	background-color: var(--color-secondary);
+	color: var(--color-white);
+}
+.filter-apply-btn:hover {
+	background-color: var(--color-secondary-dark);
+}
+.filter-reset-btn {
+	background-color: var(--color-gray);
+	color: var(--color-white);
+}
+.filter-reset-btn:hover {
+	background-color: var(--color-gray-dark);
+}
+.audit-table-wrapper {
+	overflow-x: auto;
+}
+.audit-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: var(--font-size-sm);
+}
+.audit-table th,
+.audit-table td {
+	padding: var(--spacing-sm);
+	text-align: left;
+	border-bottom: 1px solid #eee;
+}
+.audit-table th {
+	background-color: #34495e;
+	color: var(--color-white);
+	font-weight: 600;
+}
+.audit-loading {
+	text-align: center;
+	padding: var(--spacing-4xl);
+	color: var(--color-gray);
+}
+
+/* Colores para acciones en auditoría */
+.action-login {
+	color: var(--color-secondary);
+	font-weight: 500;
+}
+.action-logout {
+	color: var(--color-gray);
+}
+.action-upload-template {
+	color: var(--color-primary);
+	font-weight: 500;
+}
+.action-upload-file {
+	color: var(--color-success);
+	font-weight: 500;
+}
+.action-generate-zip {
+	color: var(--color-warning);
+	font-weight: 500;
+}
+.action-download-zip {
+	color: var(--color-secondary);
+	font-weight: 500;
+}
+.action-approve {
+	color: var(--color-success);
+	font-weight: 500;
+}
+.action-cancel {
+	color: var(--color-danger);
+	font-weight: 500;
+}

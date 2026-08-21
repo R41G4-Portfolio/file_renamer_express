@@ -1,0 +1,9 @@
+# Bloquear el rastreo de toda la API y documentación para todos los bots
+User-agent: *
+Disallow: /api/
+Disallow: /docs/
+Disallow: /swagger/
+
+# Evitar que se indexen archivos de configuración expuestos accidentalmente
+Disallow: /.env
+Disallow: /config/

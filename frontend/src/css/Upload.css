@@ -1,0 +1,163 @@
+/* UploadPage */
+.upload-page {
+	min-height: 100vh;
+	background-color: var(--color-light);
+}
+.upload-page__main {
+	max-width: 600px;
+	margin: 0 auto;
+	padding: var(--spacing-4xl) var(--spacing-xl);
+}
+.upload-page__card {
+	background: var(--color-white);
+	border-radius: var(--border-radius-xl);
+	padding: var(--spacing-3xl);
+	box-shadow: var(--shadow-lg);
+}
+.upload-page__card h2 {
+	color: var(--color-primary);
+	margin-bottom: var(--spacing-sm);
+}
+.upload-page__card p {
+	color: var(--color-gray);
+	margin-bottom: var(--spacing-xl);
+	font-size: var(--font-size-md);
+}
+.upload-page__unauthorized {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+	gap: var(--spacing-xl);
+	text-align: center;
+	padding: var(--spacing-xl);
+}
+.upload-page__unauthorized h2 {
+	color: var(--color-danger);
+}
+.upload-page__unauthorized button {
+	background-color: var(--color-secondary);
+	color: var(--color-white);
+	border: none;
+	padding: var(--spacing-sm) var(--spacing-xl);
+	border-radius: var(--border-radius-lg);
+	cursor: pointer;
+}
+
+/* ExcelUploader y FileUploader */
+.excel-uploader,
+.file-uploader {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-xl);
+}
+.excel-uploader__download-btn {
+	background-color: var(--color-success);
+	color: var(--color-white);
+	padding: var(--spacing-md);
+	border: none;
+	border-radius: var(--border-radius-lg);
+	font-size: var(--font-size-lg);
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 0.3s;
+	text-decoration: none;
+	text-align: center;
+}
+.excel-uploader__download-btn:hover {
+	background-color: var(--color-success-dark);
+}
+.excel-uploader__divider {
+	text-align: center;
+	color: var(--color-gray);
+	font-size: var(--font-size-md);
+	position: relative;
+}
+.excel-uploader__divider::before,
+.excel-uploader__divider::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	width: 45%;
+	height: 1px;
+	background-color: #ddd;
+}
+.excel-uploader__divider::before {
+	left: 0;
+}
+.excel-uploader__divider::after {
+	right: 0;
+}
+.excel-uploader__form,
+.file-uploader__form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-xl);
+}
+.excel-uploader__field,
+.file-uploader__field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+}
+.excel-uploader__label,
+.file-uploader__label {
+	font-size: var(--font-size-md);
+	font-weight: 500;
+	color: var(--color-black);
+}
+.excel-uploader__input,
+.excel-uploader__select,
+.file-uploader__input {
+	padding: var(--spacing-sm);
+	border: 1px solid #ddd;
+	border-radius: var(--border-radius-lg);
+	font-size: var(--font-size-md);
+	width: 100%;
+}
+.excel-uploader__hint,
+.file-uploader__hint {
+	font-size: var(--font-size-sm);
+	color: var(--color-gray);
+	margin-top: var(--spacing-xs);
+}
+.excel-uploader__error,
+.file-uploader__error {
+	background-color: #fee;
+	color: var(--color-danger-dark);
+	padding: var(--spacing-sm);
+	border-radius: var(--border-radius-lg);
+	font-size: var(--font-size-md);
+	text-align: center;
+}
+.excel-uploader__success,
+.file-uploader__success {
+	background-color: #dfd;
+	color: var(--color-success);
+	padding: var(--spacing-sm);
+	border-radius: var(--border-radius-lg);
+	font-size: var(--font-size-md);
+	text-align: center;
+}
+.excel-uploader__button,
+.file-uploader__button {
+	background-color: var(--color-primary);
+	color: var(--color-white);
+	padding: var(--spacing-md);
+	border: none;
+	border-radius: var(--border-radius-lg);
+	font-size: var(--font-size-lg);
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 0.3s;
+}
+.excel-uploader__button:hover,
+.file-uploader__button:hover {
+	background-color: var(--color-primary-dark);
+}
+.excel-uploader__button:disabled,
+.file-uploader__button:disabled {
+	background-color: var(--color-gray);
+	cursor: not-allowed;
+}
