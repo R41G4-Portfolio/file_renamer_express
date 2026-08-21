@@ -44,3 +44,7 @@ desktop.ini
 # ==========================================
 .vscode/
 .idea/
+backend/codigo-backend.txt
+backend/tests/templates/importaciones.txt
+frontend/codigo-frontend.txt
+frontend/codigo_frontend.sh
