@@ -1230,5 +1230,3 @@ La automatización completa de las pruebas y su integración en procesos de CI/C
 * Documentar las decisiones que tengan consecuencias sobre el funcionamiento del sistema.
 * Documentar los requisitos de configuración para una nueva instalación.
 * Registrar los cambios arquitectónicos relevantes entre versiones.
-
-https://github.com/R41G4/R41G4
